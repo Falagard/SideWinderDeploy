@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+	<meta title="SiderWinderDeployClient" package="io.sidewinder.sidewinderdeployclient" version="1.0.0" company="Company Name" />
+	<app main="Main" path="Export" file="SideWinderDeployClient" />
+
+	<source path="Source" />
+    <source path="../Shared" />
+	
+	<haxelib name="lime" />
+	<haxelib name="haxeui-core" />
+	<haxelib name="haxeui-openfl" />
+	<haxelib name="openfl" />
+	<haxelib name="actuate" />
+    <haxelib name="SideWinder" />
+	<haxelib name="SideWinderDeployShared"/>
+    <haxelib name="haxe-injection"/>
+	<assets path="Assets" />
+
+    <define name="api_host" value="http://127.0.0.1:8000" />
+	
+	<!-- Post-build copy for HTML5 builds only -->
+	<postbuild command="copy-html5-build.bat" if="html5" />
+	
+</project>

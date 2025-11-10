@@ -1,0 +1,55 @@
+{
+  "dependencies": [
+    {
+      "name": "lime",
+      "type": "haxelib",
+      "version": null
+    },
+    {
+      "name": "haxeui-core",
+      "type": "haxelib",
+      "version": null
+    },
+    {
+      "name": "haxeui-openfl",
+      "type": "haxelib",
+      "version": null
+    },
+    {
+      "name": "openfl",
+      "type": "haxelib",
+      "version": null
+    },
+    {
+      "name": "actuate",
+      "type": "haxelib",
+      "version": null
+    }, 
+    {
+      "name": "snake-server",
+      "type": "git",
+      "dir": null,
+      "ref": "fc3a072e6f6e7480a84d674dd1f731b52d9752ac",
+      "url": "https://github.com/Falagard/snake-server"
+    },
+    {
+      "name": "haxe-injection",
+      "type": "git",
+      "dir": null,
+      "ref": "7bb93913446ce60cacac1fb695038d8c204aec0f",
+      "url": "https://github.com/paulsgcross/haxe-injection"
+    },
+        {
+      "name": "Json2Object",
+      "type": "haxelib",
+      "version": null
+    },
+    {
+      "name": "SideWinder",
+      "type": "git",
+      "dir": null,
+      "ref": "f844a6c68cc110ee3fdf2d8ad9946641966793df",
+      "url": "https://github.com/Falagard/SideWinder"
+    }
+  ]
+}

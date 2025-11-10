@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+	<meta title="HaxeClientStarter" package="com.sample.haxeclientstarter" version="1.0.0" company="Company Name" />
+	<app main="Main" path="Export" file="HaxeClientStarter" />
+
+	<source path="Source" />
+	
+	<haxelib name="lime" />
+	<haxelib name="haxeui-core" />
+	<haxelib name="haxeui-openfl" />
+	<haxelib name="openfl" />
+	<haxelib name="actuate" />
+    <haxelib name="SideWinder" />
+    <haxelib name="snake-server" />
+    <haxelib name="haxe-injection"/>
+	
+	<assets path="Assets" />
+	
+</project>

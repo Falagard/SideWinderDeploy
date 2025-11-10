@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+	<meta title="SideWinderDeploy" package="io.sidewinder.sidewinderdeploy" version="1.0.0" company="SideWinder" />
+	<app main="Main" path="Export" file="SideWinderDeployServer" />
+
+	<source path="Source" />
+	
+	<haxelib name="lime" />
+    <haxelib name="SideWinder" />
+    <haxelib name="snake-server" />
+    <haxelib name="haxe-injection"/>
+    <haxelib name="SideWinderDeployShared"/>
+	
+	<assets path="Assets" />
+    <assets path="migrations" />
+    <assets path="static" />
+	
+</project>

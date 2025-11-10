@@ -1,0 +1,14 @@
+{
+  "name": "SideWinderDeployShared",
+  "url": "https://github.com/Falagard/SideWinderDeployShared/",
+  "license": "Public",
+  "tags": ["deploy", "http", "server", "sys", "web"],
+  "description": "Shared library used by client and server for SideWinder Deploy ",
+  "version": "0.1.0",
+  "classPath": "Source",
+  "main": "",
+  "dependencies": {
+  },
+  "contributors": ["Falagard"],
+  "releasenote": "See CHANGELOG"
+}

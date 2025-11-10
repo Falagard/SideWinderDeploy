@@ -1,0 +1,138 @@
+{
+  "info": {
+    "name": "SideWinder Deploy API",
+    "description": "Postman collection for the SideWinder Deploy Server (Octopus-style prototype). Uses annotation-based service routes. Update endpoints currently use POST.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": { "major": 1, "minor": 0, "patch": 0 }
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000/api" }
+  ],
+  "item": [
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "List Projects",
+          "request": { "method": "GET", "url": "{{baseUrl}}/projects" }
+        },
+        {
+          "name": "Create Project",
+            "event": [
+              {
+                "listen": "test",
+                "script": {"exec": [
+                  "let json; try { json = pm.response.json(); } catch(e) {}",
+                  "if(json && json.id){ pm.environment.set('projectId', json.id); }"
+                ], "type": "text/javascript"}
+              }
+            ],
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw": "{\n  \"name\": \"WebApp\",\n  \"description\": \"Initial project\"\n}"},
+            "url": "{{baseUrl}}/projects"
+          }
+        },
+        {
+          "name": "Get Project",
+          "request": { "method": "GET", "url": "{{baseUrl}}/projects/{{projectId}}" }
+        },
+        {
+          "name": "Update Project (POST)",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw": "{\n  \"name\": \"WebApp-Renamed\"\n}"},
+            "url": "{{baseUrl}}/projects/{{projectId}}"
+          }
+        },
+        {
+          "name": "Delete Project",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/projects/{{projectId}}" }
+        },
+        {
+          "name": "List Project Releases",
+          "request": { "method": "GET", "url": "{{baseUrl}}/projects/{{projectId}}/releases" }
+        },
+        {
+          "name": "Create Release",
+          "event": [
+            {
+              "listen": "test",
+              "script": {"exec": [
+                "let json; try { json = pm.response.json(); } catch(e) {}",
+                "if(json && json.id){ pm.environment.set('releaseId', json.id); }"
+              ], "type": "text/javascript"}
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw": "{\n  \"notes\": \"First release\"\n}"},
+            "url": "{{baseUrl}}/projects/{{projectId}}/releases"
+          }
+        },
+        {
+          "name": "Get Release",
+          "request": { "method": "GET", "url": "{{baseUrl}}/releases/{{releaseId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Environments",
+      "item": [
+        {"name":"List Environments","request":{"method":"GET","url":"{{baseUrl}}/environments"}},
+        {"name":"Create Environment","event":[{"listen":"test","script":{"exec":["let j; try{j=pm.response.json();}catch(e){}","if(j&&j.id){pm.environment.set('environmentId',j.id);} "],"type":"text/javascript"}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"Dev\"\n}"},"url":"{{baseUrl}}/environments"}},
+        {"name":"Get Environment","request":{"method":"GET","url":"{{baseUrl}}/environments/{{environmentId}}"}}
+      ]
+    },
+    {
+      "name": "Machines",
+      "item": [
+        {"name":"List Machines","request":{"method":"GET","url":"{{baseUrl}}/machines"}},
+  {"name":"Create Machine","event":[{"listen":"test","script":{"exec":["let j; try{j=pm.response.json();}catch(e){}","if(j&&j.id){pm.environment.set('machineId',j.id);} ","if(j&&Array.isArray(j.environmentIds)&&j.environmentIds.length){ pm.test('environmentIds are numbers', function(){ pm.expect(typeof j.environmentIds[0]).to.eql('number'); }); }"],"type":"text/javascript"}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"web-01\",\n  \"roles\": [\"web\"],\n  \"environmentIds\": [{{environmentId}}]\n}"},"url":"{{baseUrl}}/machines"}},
+        {"name":"Get Machine","request":{"method":"GET","url":"{{baseUrl}}/machines/{{machineId}}"}}
+      ]
+    },
+    {
+      "name": "Deployments",
+      "item": [
+        {"name":"List Release Deployments","request":{"method":"GET","url":"{{baseUrl}}/releases/{{releaseId}}/deployments"}},
+  {"name":"Create Deployment","event":[{"listen":"test","script":{"exec":["let j; try{j=pm.response.json();}catch(e){}","if(j&&j.id){pm.environment.set('deploymentId',j.id);} ","if(j){ pm.test('deployment ids numeric', function(){ pm.expect(typeof j.id).to.eql('number'); pm.expect(typeof j.releaseId).to.eql('number'); pm.expect(typeof j.environmentId).to.eql('number'); }); }"],"type":"text/javascript"}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"environmentId\": {{environmentId}}\n}"},"url":"{{baseUrl}}/releases/{{releaseId}}/deployments"}},
+        {"name":"Get Deployment","request":{"method":"GET","url":"{{baseUrl}}/deployments/{{deploymentId}}"}}
+      ]
+    },
+    {
+      "name": "Tenants",
+      "item": [
+        {"name":"List Tenants","request":{"method":"GET","url":"{{baseUrl}}/tenants"}},
+  {"name":"Create Tenant","event":[{"listen":"test","script":{"exec":["let j; try{j=pm.response.json();}catch(e){}","if(j&&j.id){pm.environment.set('tenantId',j.id);} ","if(j){ pm.test('tenant id numeric', function(){ pm.expect(typeof j.id).to.eql('number'); }); }"],"type":"text/javascript"}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"TenantA\",\n  \"description\": \"Primary customer\"\n}"},"url":"{{baseUrl}}/tenants"}},
+        {"name":"Get Tenant","request":{"method":"GET","url":"{{baseUrl}}/tenants/{{tenantId}}"}},
+        {"name":"Update Tenant (POST)","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"description\": \"Updated description\"\n}"},"url":"{{baseUrl}}/tenants/{{tenantId}}"}},
+        {"name":"Delete Tenant","request":{"method":"DELETE","url":"{{baseUrl}}/tenants/{{tenantId}}"}}
+      ]
+    },
+    {
+      "name": "Project Variables",
+      "item": [
+        {"name":"List Variables","request":{"method":"GET","url":"{{baseUrl}}/projects/{{projectId}}/variables"}},
+  {"name":"Create Variable","event":[{"listen":"test","script":{"exec":["let j; try{j=pm.response.json();}catch(e){}","if(j&&j.id){pm.environment.set('variableId',j.id);} ","if(j){ pm.test('variable id numeric', function(){ pm.expect(typeof j.id).to.eql('number'); pm.expect(typeof j.projectId).to.eql('number'); }); }"],"type":"text/javascript"}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"ConnectionString\",\n  \"defaultValue\": \"Server=dev;DB=app\"\n}"},"url":"{{baseUrl}}/projects/{{projectId}}/variables"}},
+        {"name":"Get Variable","request":{"method":"GET","url":"{{baseUrl}}/variables/{{variableId}}"}},
+        {"name":"Update Variable (POST)","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"defaultValue\": \"Server=staging;DB=app\"\n}"},"url":"{{baseUrl}}/variables/{{variableId}}"}},
+        {"name":"Delete Variable","request":{"method":"DELETE","url":"{{baseUrl}}/variables/{{variableId}}"}}
+      ]
+    },
+    {
+      "name": "Tenant Variable Overrides",
+      "item": [
+  {"name":"Set / Upsert Override","event":[{"listen":"test","script":{"exec":["let j; try{j=pm.response.json();}catch(e){}","if(j&&j.id){pm.environment.set('tenantVarValueId',j.id);} ","if(j){ pm.test('override ids numeric', function(){ pm.expect(typeof j.id).to.eql('number'); pm.expect(typeof j.projectId).to.eql('number'); pm.expect(typeof j.variableId).to.eql('number'); pm.expect(typeof j.tenantId).to.eql('number'); }); }"],"type":"text/javascript"}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"projectId\": {{projectId}},\n  \"variableId\": {{variableId}},\n  \"tenantId\": {{tenantId}},\n  \"value\": \"Server=prod;DB=app\"\n}"},"url":"{{baseUrl}}/projects/{{projectId}}/variables/{{variableId}}/tenants/{{tenantId}}/value"}},
+        {"name":"Get Override Value","request":{"method":"GET","url":"{{baseUrl}}/projects/{{projectId}}/variables/{{variableId}}/tenants/{{tenantId}}/value"}},
+        {"name":"List Tenant Overrides (Project+Tenant)","request":{"method":"GET","url":"{{baseUrl}}/projects/{{projectId}}/tenants/{{tenantId}}/variables"}},
+        {"name":"Delete Overrides For Project","request":{"method":"DELETE","url":"{{baseUrl}}/projects/{{projectId}}/tenant-variable-values"}},
+        {"name":"Delete Overrides For Variable","request":{"method":"DELETE","url":"{{baseUrl}}/project-variables/{{variableId}}/tenant-variable-values"}},
+        {"name":"Delete Overrides For Tenant","request":{"method":"DELETE","url":"{{baseUrl}}/tenants/{{tenantId}}/tenant-variable-values"}}
+      ]
+    }
+  ]
+}
