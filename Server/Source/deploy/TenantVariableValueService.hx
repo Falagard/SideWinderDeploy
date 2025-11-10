@@ -9,10 +9,7 @@ class TenantVariableValueService implements ITenantVariableValueService {
 	public function new() {}
 
 	// Insert or update a tenant variable override in the database.
-	public function setTenantVariableValue(valueObj:TenantProjectVariableValue):TenantProjectVariableValue {
-		var projectId = valueObj.projectId;
-		var variableId = valueObj.variableId;
-		var tenantId = valueObj.tenantId;
+	public function setTenantVariableValue(projectId:Int, variableId:Int, tenantId:Int, valueObj:TenantProjectVariableValue):TenantProjectVariableValue {
 		var result:TenantProjectVariableValue = null;
 		try {
 			var params = new Map<String, Dynamic>();

@@ -31,9 +31,7 @@ class ProjectVariableService implements IProjectVariableService {
 		return out;
 	}
 
-	public function createProjectVariable(variable:ProjectVariable):ProjectVariable {
-		// Sanity: ensure projectId present
-		var projectId = variable.projectId;
+	public function createProjectVariable(projectId:Int, variable:ProjectVariable):ProjectVariable {
 		var now = Date.now();
 		var created:ProjectVariable = { id:0, projectId:projectId, name:variable.name, defaultValue:variable.defaultValue, createdAt:now };
 		try {

@@ -68,6 +68,7 @@ class Main extends Application {
 
 		DI.init(c -> {
 			c.addSingleton(ICacheService, CacheService);
+			c.addScoped(IAuthService, AuthService);
 			c.addScoped(IProjectService, ProjectService);
 			c.addScoped(IEnvironmentService, EnvironmentService);
 			c.addScoped(IMachineService, MachineService);
@@ -89,7 +90,44 @@ class Main extends Application {
 			next();
 		}); 
 
+		// Authentication middleware - protect all /api/ routes except /api/auth/
+		App.use((req, res, next) -> {
+			// Skip auth for auth endpoints
+			if (req.path.indexOf("/api/auth/") == 0) {
+				next();
+				return;
+			}
+			
+		// Require authentication for all other /api/ routes
+		if (req.path.indexOf("/api/") == 0) {
+			var authHeader = req.headers.get("authorization");
+			if (authHeader == null || authHeader.indexOf("Bearer ") != 0) {
+				res.sendResponse(HTTPStatus.UNAUTHORIZED);
+				res.setHeader("Content-Type", "application/json");
+				res.endHeaders();
+				res.write(haxe.Json.stringify({error: "Unauthorized - No token provided"}));
+				res.end();
+				return;
+			}
+			
+			var token = authHeader.substring(7); // Remove "Bearer " prefix
+				var authService:AuthService = cast DI.get(IAuthService);
+				var user = authService.validateSessionToken(token);
+				
+			if (user == null) {
+				res.sendResponse(HTTPStatus.UNAUTHORIZED);
+				res.setHeader("Content-Type", "application/json");
+				res.endHeaders();
+				res.write(haxe.Json.stringify({error: "Unauthorized - Invalid or expired token"}));
+				res.end();
+				return;
+			}				// User is authenticated, continue
+			}
+			next();
+		}); 
+
 		// Build AutoRouter mappings for all controllers
+		AutoRouter.build(router, IAuthService, () -> DI.get(IAuthService));
 		AutoRouter.build(router, IProjectService, () -> DI.get(IProjectService));
 		AutoRouter.build(router, IEnvironmentService, () -> DI.get(IEnvironmentService));
 		AutoRouter.build(router, IMachineService, () -> DI.get(IMachineService));
