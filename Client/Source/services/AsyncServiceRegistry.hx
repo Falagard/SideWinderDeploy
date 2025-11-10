@@ -10,6 +10,8 @@ import sidewinderdeploy.shared.IProjectVariableService;
 import sidewinderdeploy.shared.ITenantVariableValueService;
 import sidewinderdeploy.shared.IMachineService;
 import sidewinderdeploy.shared.IAuthService;
+import sidewinder.ICookieJar;
+import sidewinder.CookieJar;
 
 /**
  * Holds async (callback-based) service clients generated via AutoClientAsync.
@@ -20,6 +22,7 @@ class AsyncServiceRegistry {
     public static var instance(default, null):AsyncServiceRegistry = new AsyncServiceRegistry(ServiceRegistry.instance.baseUrl);
 
     public var baseUrl(default, null):String;
+    public var cookieJar(default, null):ICookieJar;
 
     public var project:Dynamic;
     public var release:Dynamic;
@@ -33,29 +36,25 @@ class AsyncServiceRegistry {
 
     public function new(baseUrl:String) {
         this.baseUrl = baseUrl;
-        project = AutoClientAsync.create(IProjectService, baseUrl);
-        release = AutoClientAsync.create(IReleaseService, baseUrl);
-        environment = AutoClientAsync.create(IEnvironmentService, baseUrl);
-        deployment = AutoClientAsync.create(IDeploymentService, baseUrl);
-        machine = AutoClientAsync.create(IMachineService, baseUrl);
-        tenant = AutoClientAsync.create(ITenantService, baseUrl);
-        projectVariable = AutoClientAsync.create(IProjectVariableService, baseUrl);
-        tenantVariableValue = AutoClientAsync.create(ITenantVariableValueService, baseUrl);
-        auth = AutoClientAsync.create(IAuthService, baseUrl);
+        cookieJar = new CookieJar();
+        createClients();
+    }
+
+    private function createClients():Void {
+        project = AutoClientAsync.create(IProjectService, baseUrl, cookieJar);
+        release = AutoClientAsync.create(IReleaseService, baseUrl, cookieJar);
+        environment = AutoClientAsync.create(IEnvironmentService, baseUrl, cookieJar);
+        deployment = AutoClientAsync.create(IDeploymentService, baseUrl, cookieJar);
+        machine = AutoClientAsync.create(IMachineService, baseUrl, cookieJar);
+        tenant = AutoClientAsync.create(ITenantService, baseUrl, cookieJar);
+        projectVariable = AutoClientAsync.create(IProjectVariableService, baseUrl, cookieJar);
+        tenantVariableValue = AutoClientAsync.create(ITenantVariableValueService, baseUrl, cookieJar);
+        auth = AutoClientAsync.create(IAuthService, baseUrl, cookieJar);
     }
 
     public function resetBaseUrl(newUrl:String):Void {
         if (newUrl == baseUrl) return;
         baseUrl = newUrl;
-        // Recreate clients with new base URL
-        project = AutoClientAsync.create(IProjectService, baseUrl);
-        release = AutoClientAsync.create(IReleaseService, baseUrl);
-        environment = AutoClientAsync.create(IEnvironmentService, baseUrl);
-        deployment = AutoClientAsync.create(IDeploymentService, baseUrl);
-        machine = AutoClientAsync.create(IMachineService, baseUrl);
-        tenant = AutoClientAsync.create(ITenantService, baseUrl);
-        projectVariable = AutoClientAsync.create(IProjectVariableService, baseUrl);
-        tenantVariableValue = AutoClientAsync.create(ITenantVariableValueService, baseUrl);
-        auth = AutoClientAsync.create(IAuthService, baseUrl);
+        createClients();
     }
 }
