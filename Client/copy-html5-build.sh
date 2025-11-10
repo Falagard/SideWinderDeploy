@@ -4,7 +4,7 @@
 echo -e "\033[32mCopying HTML5 build to server static/client directory...\033[0m"
 
 SOURCE_DIR="Export/html5/bin"
-DEST_DIR="../SideWinderDeployServer/static/client"
+DEST_DIR="../Server/static/client"
 
 # Check if source directory exists
 if [ ! -d "$SOURCE_DIR" ]; then
