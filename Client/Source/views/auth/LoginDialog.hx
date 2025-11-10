@@ -78,7 +78,7 @@ class LoginDialog extends Dialog {
             if (registerBtn != null) registerBtn.disabled = false;
             if (loggingInRow != null) loggingInRow.visible = false;
             
-            if (response.success && response.token != null && response.user != null) {
+            if (response.success && response.user != null) {
                 Notifications.show('Welcome, ' + (response.user.username != null ? response.user.username : response.user.email), 'success');
                 if (onLoginSuccess != null) onLoginSuccess(response.user, response.token);
                 this.hideDialog("success");

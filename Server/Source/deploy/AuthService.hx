@@ -159,6 +159,28 @@ class AuthService implements IAuthService {
 		}
 	}
 
+	public function invalidateSession(token:String):Bool {
+		try {
+			var conn = Database.acquire();
+			var params = new Map<String, Dynamic>();
+			params.set("token", token);
+			
+			var sql = "DELETE FROM sessions WHERE token=@token";
+			conn.request(Database.buildSql(sql, params));
+			Database.release(conn);
+			
+			// Clear current session if it matches
+			if (currentSession != null && currentSession.token == token) {
+				currentSession = null;
+				currentUser = null;
+			}
+			
+			return true;
+		} catch (e:Dynamic) {
+			return false;
+		}
+	}
+
 	public function getCurrentUser():Null<UserPublic> {
 		// TODO: Current user should be set via middleware or passed as context
 		// For now, returning null if not already set

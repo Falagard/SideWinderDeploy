@@ -29,11 +29,11 @@ import sidewinder.SideWinderServer;
 import lime.ui.Gamepad;
 import lime.ui.GamepadButton;
 import Date;
-import sidewinder.Database; 
-
+import sidewinder.Database;
 import hx.injection.Service;
 // Removed DeployApi; using AutoRouter-based controllers
 import sidewinderdeploy.shared.*;
+import sidewinderdeploy.shared.AuthModels;
 import deploy.*;
 
 using hx.injection.ServiceExtensions;
@@ -88,7 +88,7 @@ class Main extends Application {
 			//
 			HybridLogger.info('${req.method} ${req.path} ' + Sys.time());
 			next();
-		}); 
+		});
 
 		// Authentication middleware - protect all /api/ routes except /api/auth/
 		App.use((req, res, next) -> {
@@ -97,34 +97,116 @@ class Main extends Application {
 				next();
 				return;
 			}
-			
-		// Require authentication for all other /api/ routes
-		if (req.path.indexOf("/api/") == 0) {
-			var authHeader = req.headers.get("authorization");
-			if (authHeader == null || authHeader.indexOf("Bearer ") != 0) {
-				res.sendResponse(HTTPStatus.UNAUTHORIZED);
-				res.setHeader("Content-Type", "application/json");
-				res.endHeaders();
-				res.write(haxe.Json.stringify({error: "Unauthorized - No token provided"}));
-				res.end();
-				return;
-			}
-			
-			var token = authHeader.substring(7); // Remove "Bearer " prefix
+
+			// Require authentication for all other /api/ routes
+			if (req.path.indexOf("/api/") == 0) {
+				// Get session token from cookie
+				var sessionToken:String = null;
+
+				if (req.cookies != null && req.cookies.exists("session_token")) {
+					sessionToken = req.cookies.get("session_token");
+				}
+
+				if (sessionToken == null) {
+					res.sendResponse(HTTPStatus.UNAUTHORIZED);
+					res.setHeader("Content-Type", "application/json");
+					res.endHeaders();
+					res.write(haxe.Json.stringify({error: "Unauthorized - No session token"}));
+					res.end();
+					return;
+				}
+
 				var authService:AuthService = cast DI.get(IAuthService);
-				var user = authService.validateSessionToken(token);
-				
-			if (user == null) {
-				res.sendResponse(HTTPStatus.UNAUTHORIZED);
-				res.setHeader("Content-Type", "application/json");
-				res.endHeaders();
-				res.write(haxe.Json.stringify({error: "Unauthorized - Invalid or expired token"}));
-				res.end();
-				return;
-			}				// User is authenticated, continue
+				var user = authService.validateSessionToken(sessionToken);
+
+				if (user == null) {
+					res.sendResponse(HTTPStatus.UNAUTHORIZED);
+					res.setHeader("Content-Type", "application/json");
+					res.endHeaders();
+					res.write(haxe.Json.stringify({error: "Unauthorized - Invalid or expired token"}));
+					res.end();
+					return;
+				}
+				// User is authenticated, continue
 			}
 			next();
-		}); 
+		});
+
+		// Custom login endpoint to set HttpOnly cookie
+		router.add("POST", "/api/auth/login", (req, res) -> {
+			try {
+				var loginRequest:LoginRequest = req.jsonBody;
+				if (loginRequest == null || loginRequest.emailOrUsername == null || loginRequest.password == null) {
+					res.sendResponse(HTTPStatus.BAD_REQUEST);
+					res.setHeader("Content-Type", "application/json");
+					res.endHeaders();
+					res.write(haxe.Json.stringify({error: "Missing email/username or password"}));
+					res.end();
+					return;
+				}
+
+				var authService:AuthService = cast DI.get(IAuthService);
+				var result = authService.login(loginRequest);
+
+				if (result.success) {
+					// Set HttpOnly secure cookie with session token
+					var cookieValue = 'session_token=${result.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800'; // 7 days
+					// Add Secure flag when using HTTPS in production
+					// cookieValue += "; Secure";
+
+					res.sendResponse(HTTPStatus.OK);
+					res.setHeader("Content-Type", "application/json");
+					res.setHeader("Set-Cookie", cookieValue);
+					res.endHeaders();
+					res.write(haxe.Json.stringify({
+						success: true,
+						user: result.user
+					}));
+					res.end();
+				} else {
+					res.sendResponse(HTTPStatus.UNAUTHORIZED);
+					res.setHeader("Content-Type", "application/json");
+					res.endHeaders();
+					res.write(haxe.Json.stringify({success: false, error: result.error}));
+					res.end();
+				}
+			} catch (e:Dynamic) {
+				res.sendResponse(HTTPStatus.INTERNAL_SERVER_ERROR);
+				res.setHeader("Content-Type", "application/json");
+				res.endHeaders();
+				res.write(haxe.Json.stringify({error: "Internal server error"}));
+				res.end();
+			}
+		});
+
+		// Custom logout endpoint to clear cookie
+		router.add("POST", "/api/auth/logout", (req, res) -> {
+			try {
+				// Get session token from cookie to invalidate it
+				var sessionToken:String = null;
+				if (req.cookies != null && req.cookies.exists("session_token")) {
+					sessionToken = req.cookies.get("session_token");
+				}
+
+				// Invalidate session in database if token exists
+				if (sessionToken != null) {
+					var authService:AuthService = cast DI.get(IAuthService);
+					authService.invalidateSession(sessionToken);
+				} // Clear the cookie
+				res.sendResponse(HTTPStatus.OK);
+				res.setHeader("Content-Type", "application/json");
+				res.setHeader("Set-Cookie", "session_token=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0");
+				res.endHeaders();
+				res.write(haxe.Json.stringify({success: true}));
+				res.end();
+			} catch (e:Dynamic) {
+				res.sendResponse(HTTPStatus.INTERNAL_SERVER_ERROR);
+				res.setHeader("Content-Type", "application/json");
+				res.endHeaders();
+				res.write(haxe.Json.stringify({error: "Internal server error"}));
+				res.end();
+			}
+		});
 
 		// Build AutoRouter mappings for all controllers
 		AutoRouter.build(router, IAuthService, () -> DI.get(IAuthService));

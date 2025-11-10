@@ -1,0 +1,38 @@
+<!-- Registration dialog XML layout -->
+<dialog id="registerDialog" width="400" styleName="registerDialog" closable="true" buttons="none">
+  <vbox id="contentBox" percentWidth="100">
+    <label text="Create Account" styleName="dialogTitle" />
+    
+    <hbox id="emailRow" percentWidth="100">
+      <label id="emailLabel" text="Email:" width="120" />
+      <textfield id="emailField" percentWidth="100" placeholder="Enter your email" />
+    </hbox>
+    
+    <hbox id="usernameRow" percentWidth="100" styleName="topSpacing">
+      <label id="usernameLabel" text="Username:" width="120" />
+      <textfield id="usernameField" percentWidth="100" placeholder="Optional username" />
+    </hbox>
+    
+    <hbox id="passwordRow" percentWidth="100" styleName="topSpacing">
+      <label id="passwordLabel" text="Password:" width="120" />
+      <textfield id="passwordField" percentWidth="100" placeholder="At least 6 characters" password="true" />
+    </hbox>
+    
+    <hbox id="confirmPasswordRow" percentWidth="100" styleName="topSpacing">
+      <label id="confirmPasswordLabel" text="Confirm:" width="120" />
+      <textfield id="confirmPasswordField" percentWidth="100" placeholder="Confirm password" password="true" />
+    </hbox>
+    
+    <label id="errorLabel" visible="false" styleName="errorLabel" />
+    
+    <hbox id="registeringRow" percentWidth="100" visible="false" styleName="topSpacing">
+      <label id="registeringLbl" text="Creating account..." width="120" />
+      <progress id="registeringSpinner" indeterminate="true" percentWidth="100" />
+    </hbox>
+    
+    <hbox id="actions" percentWidth="100" styleName="topSpacing">
+      <button id="registerBtn" text="Create Account" />
+      <button id="backToLoginBtn" text="Back to Sign In" />
+    </hbox>
+  </vbox>
+</dialog>

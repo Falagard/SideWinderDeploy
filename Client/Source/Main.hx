@@ -10,11 +10,6 @@ import views.auth.AuthManager;
 
 class Main {
     public static function main() {
-        // Install XHR interceptor for authentication (HTML5/JS target only)
-        #if js
-        installAuthInterceptor();
-        #end
-        
         var app = new HaxeUIApp();
         app.ready(function() {
             // Inject custom styles for errorBanner
@@ -61,42 +56,6 @@ class Main {
             app.start();
         });
     }
-    
-    #if js
-    /**
-     * Install XMLHttpRequest interceptor to automatically add Authorization header
-     * to all API requests (except auth endpoints)
-     */
-    static function installAuthInterceptor():Void {
-        js.Syntax.code("
-            (function() {
-                var originalOpen = XMLHttpRequest.prototype.open;
-                var originalSend = XMLHttpRequest.prototype.send;
-                
-                XMLHttpRequest.prototype.open = function(method, url) {
-                    this._url = url;
-                    this._method = method;
-                    return originalOpen.apply(this, arguments);
-                };
-                
-                XMLHttpRequest.prototype.send = function() {
-                    // Add auth header to API requests (except /api/auth/ endpoints)
-                    if (this._url && this._url.indexOf('/api/') !== -1) {
-                        // Skip auth endpoints (login, register, etc)
-                        if (this._url.indexOf('/api/auth/') === -1) {
-                            var token = window.localStorage.getItem('authToken');
-                            if (token) {
-                                this.setRequestHeader('Authorization', 'Bearer ' + token);
-                            }
-                        }
-                    }
-                    return originalSend.apply(this, arguments);
-                };
-            })();
-        ");
-        trace('[Auth] XHR interceptor installed - Authorization header will be added to API requests');
-    }
-    #end
 }
 
 
