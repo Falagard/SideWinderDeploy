@@ -4,14 +4,14 @@
       "name": "SideWinder",
       "type": "git",
       "dir": null,
-      "ref": "35e2590808310f31e7e4674b0ab9675358f7f502",
+      "ref": "1e2055bb8aad6e60caaa5730c73544f53b93c1c8",
       "url": "https://github.com/Falagard/SideWinder"
     },
     {
       "name": "SideWinderDeployShared",
       "type": "git",
       "dir": null,
-      "ref": "efd41e0eb209e46ae6a31adefd01c62b698b5ff5",
+      "ref": "0edfc28cdf50693bcfb4b5fdd040f3bebbcd109c",
       "url": "https://github.com/Falagard/SideWinderDeployShared"
     },
     {
