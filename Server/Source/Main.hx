@@ -133,7 +133,7 @@ class Main extends Application {
 		});
 
 		// Custom login endpoint to set HttpOnly cookie
-		router.add("POST", "/api/auth/login", (req, res) -> {
+		router.add("POST", "/api/auth/login", (req:Request, res:Response) -> {
 			try {
 				var loginRequest:LoginRequest = req.jsonBody;
 				if (loginRequest == null || loginRequest.emailOrUsername == null || loginRequest.password == null) {
@@ -149,14 +149,11 @@ class Main extends Application {
 				var result = authService.login(loginRequest);
 
 				if (result.success) {
-					// Set HttpOnly secure cookie with session token
-					var cookieValue = 'session_token=${result.token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800'; // 7 days
-					// Add Secure flag when using HTTPS in production
-					// cookieValue += "; Secure";
-
+					// Use SideWinder setCookie helper (SameSite attribute not currently supported; extend helper if needed)
 					res.sendResponse(HTTPStatus.OK);
 					res.setHeader("Content-Type", "application/json");
-					res.setHeader("Set-Cookie", cookieValue);
+					res.setCookie("session_token", result.token, {path: "/", domain: null, maxAge: "604800", httpOnly: true, secure: false}); // 7 days
+					// TODO: Add Secure when serving over HTTPS
 					res.endHeaders();
 					res.write(haxe.Json.stringify({
 						success: true,
@@ -180,7 +177,7 @@ class Main extends Application {
 		});
 
 		// Custom logout endpoint to clear cookie
-		router.add("POST", "/api/auth/logout", (req, res) -> {
+		router.add("POST", "/api/auth/logout", (req:Request, res:Response) -> {
 			try {
 				// Get session token from cookie to invalidate it
 				var sessionToken:String = null;
@@ -195,7 +192,8 @@ class Main extends Application {
 				} // Clear the cookie
 				res.sendResponse(HTTPStatus.OK);
 				res.setHeader("Content-Type", "application/json");
-				res.setHeader("Set-Cookie", "session_token=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0");
+				// Clear cookie using helper (SameSite not supported in helper yet)
+				res.setCookie("session_token", "", {path: "/", domain: null, maxAge: "0", httpOnly: true, secure: false});
 				res.endHeaders();
 				res.write(haxe.Json.stringify({success: true}));
 				res.end();

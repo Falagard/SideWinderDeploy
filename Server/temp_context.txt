@@ -1,0 +1,55 @@
+		});
+
+		// Authentication middleware - protect all /api/ routes except /api/auth/
+		App.use((req, res, next) -> {
+			// Skip auth for auth endpoints
+			if (req.path.indexOf("/api/auth/") == 0) {
+				next();
+				return;
+			}
+
+			// Require authentication for all other /api/ routes
+		if (req.path.indexOf("/api/") == 0) {
+			// Debug logging
+			HybridLogger.info('Auth check for: ${req.path}');
+			HybridLogger.info('Cookie header: ${req.headers.get("cookie")}');
+			HybridLogger.info('Parsed cookies: ${req.cookies != null ? [for (k in req.cookies.keys()) k + "=" + req.cookies.get(k)].join(", ") : "null"}');
+			
+			// Get session token from cookie
+			var sessionToken:String = null;				if (req.cookies != null && req.cookies.exists("session_token")) {
+					sessionToken = req.cookies.get("session_token");
+				}
+
+				if (sessionToken == null) {
+					res.sendResponse(HTTPStatus.UNAUTHORIZED);
+					res.setHeader("Content-Type", "application/json");
+					res.endHeaders();
+					res.write(haxe.Json.stringify({error: "Unauthorized - No session token"}));
+					res.end();
+					return;
+				}
+
+			var authService:AuthService = cast DI.get(IAuthService);
+			var user = authService.validateSessionToken(sessionToken);
+
+			if (user == null) {
+				HybridLogger.warn('Invalid session token: $sessionToken');
+				res.sendResponse(HTTPStatus.UNAUTHORIZED);
+					res.setHeader("Content-Type", "application/json");
+					res.endHeaders();
+					res.write(haxe.Json.stringify({error: "Unauthorized - Invalid or expired token"}));
+					res.end();
+					return;
+				}
+							}
+		// User is authenticated, continue
+		HybridLogger.info('User authenticated: ${user.username}');
+	}
+	next();
+});	// Custom login endpoint to set HttpOnly cookie
+	router.add("POST", "/api/auth/login", (req, res) -> {
+		try {
+			HybridLogger.info('Login request received');
+			var loginRequest:LoginRequest = req.jsonBody;
+			if (loginRequest == null || loginRequest.emailOrUsername == null || loginRequest.password == null) {
+				HybridLogger.warn('Invalid login request body');
