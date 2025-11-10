@@ -9,6 +9,7 @@ import sidewinderdeploy.shared.ITenantService;
 import sidewinderdeploy.shared.IProjectVariableService;
 import sidewinderdeploy.shared.ITenantVariableValueService;
 import sidewinderdeploy.shared.IMachineService;
+import sidewinderdeploy.shared.IAuthService;
 
 /**
  * Holds async (callback-based) service clients generated via AutoClientAsync.
@@ -28,6 +29,7 @@ class AsyncServiceRegistry {
     public var tenant:Dynamic;
     public var projectVariable:Dynamic;
     public var tenantVariableValue:Dynamic;
+    public var auth:Dynamic; // authentication service
 
     public function new(baseUrl:String) {
         this.baseUrl = baseUrl;
@@ -39,6 +41,7 @@ class AsyncServiceRegistry {
         tenant = AutoClientAsync.create(ITenantService, baseUrl);
         projectVariable = AutoClientAsync.create(IProjectVariableService, baseUrl);
         tenantVariableValue = AutoClientAsync.create(ITenantVariableValueService, baseUrl);
+        auth = AutoClientAsync.create(IAuthService, baseUrl);
     }
 
     public function resetBaseUrl(newUrl:String):Void {
@@ -53,5 +56,6 @@ class AsyncServiceRegistry {
         tenant = AutoClientAsync.create(ITenantService, baseUrl);
         projectVariable = AutoClientAsync.create(IProjectVariableService, baseUrl);
         tenantVariableValue = AutoClientAsync.create(ITenantVariableValueService, baseUrl);
+        auth = AutoClientAsync.create(IAuthService, baseUrl);
     }
 }

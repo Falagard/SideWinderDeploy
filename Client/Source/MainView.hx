@@ -4,6 +4,7 @@ import haxe.ui.containers.VBox;
 import haxe.ui.containers.TabView;
 import haxe.ui.containers.TreeView;
 import haxe.ui.components.Button;
+import haxe.ui.components.Label;
 import haxe.ui.core.Component;
 import components.ErrorBanner;
 import haxe.ui.events.MouseEvent;
@@ -23,10 +24,12 @@ class MainView extends VBox {
 	var itemList:TreeView; // from XML itemList
 	var contentTabs:TabView; // from XML
 	var detailsPlaceholder:VBox; // from XML - placeholder for machines/environments
-	var detailsPlaceholderText:haxe.ui.components.Label; // from XML
+	var detailsPlaceholderText:Label; // from XML
 	var refreshBtn:Button; // from XML
 	var createItemBtn:Button; // from XML
-	var itemStatusLabel:haxe.ui.components.Label; // from XML
+	var itemStatusLabel:Label; // from XML
+	var userLabel:Label; // from XML - displays current user
+	var logoutBtn:Button; // from XML - logout button
 	var releasesTab:ReleasesTab; // added programmatically and uses its own XML
 	var projectVariablesTab:ProjectVariablesTab; // variables tab implementation
 	var projectOverviewTab:ProjectOverviewTab; // overview tab implementation
@@ -49,9 +52,30 @@ class MainView extends VBox {
 		if (initialCat == null || initialCat == "") initialCat = "Projects";
 		updateContentTabsVisibility(initialCat);
 		populateItemsFor(initialCat);
+		
+		// Watch authentication state and update user display
+		appState.currentUser.watch(function(user) {
+			updateUserDisplay();
+		});
+		updateUserDisplay();
+	}
+
+	private function updateUserDisplay():Void {
+		if (userLabel != null) {
+			var user = appState.currentUser.value;
+			if (user != null) {
+				var displayName = user.username != null ? user.username : user.email;
+				userLabel.text = displayName;
+			} else {
+				userLabel.text = "";
+			}
+		}
 	}
 
 	private function wireEvents():Void {
+		if (logoutBtn != null) logoutBtn.onClick = function(_) {
+			handleLogout();
+		};
 		if (refreshBtn != null) refreshBtn.onClick = function(_) {
 			populateItemsFor(appState.selectedPrimaryCategory.value, true);
 		};
@@ -317,7 +341,26 @@ class MainView extends VBox {
 				});
 			default:
 				clearItemStatusComponents();
-				setStatus('Unknown category: ' + cat, true);
+								setStatus('Unknown category: ' + cat, true);
 		}
+	}
+
+	private function handleLogout():Void {
+		untyped asyncServices.auth.logoutAsync(function(success:Bool) {
+			appState.clearAuthentication();
+			Notifications.show('Signed out successfully', 'info');
+			// Trigger re-authentication via AuthManager
+			// The auth check will happen on next app reload or we can trigger it here
+			#if js
+			js.Browser.window.location.reload();
+			#end
+		}, function(err:Dynamic) {
+			// Still clear local auth even if server call fails
+			appState.clearAuthentication();
+			Notifications.show('Signed out', 'info');
+			#if js
+			js.Browser.window.location.reload();
+			#end
+		});
 	}
 }

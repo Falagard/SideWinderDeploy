@@ -6,9 +6,15 @@ import haxe.ui.styles.StyleSheet;
 import haxe.ui.styles.CompositeStyleSheet;
 import components.Notifications;
 import haxe.ui.containers.dialogs.Dialog; // (no direct use yet, kept for future global styling)
+import views.auth.AuthManager;
 
 class Main {
     public static function main() {
+        // Install XHR interceptor for authentication (HTML5/JS target only)
+        #if js
+        installAuthInterceptor();
+        #end
+        
         var app = new HaxeUIApp();
         app.ready(function() {
             // Inject custom styles for errorBanner
@@ -24,6 +30,16 @@ class Main {
                 css += ".variableFormOverlay { background-color:#ffffff; border:1px solid #a8b8d0; border-radius:6px; box-shadow:0 4px 14px rgba(0,0,0,0.28); }";
                 css += ".releaseFormOverlay { background-color:#ffffff; border:1px solid #b0c4e0; border-radius:6px; padding:14px 18px; box-shadow:0 5px 18px rgba(0,0,0,0.30); }";
                 // legacy ModalManager styles removed; dialog-specific styles applied via overlay classes
+                // Authentication dialog styles
+                css += ".loginDialog { background-color:#ffffff; border:1px solid #a8b8d0; border-radius:6px; box-shadow:0 4px 14px rgba(0,0,0,0.28); }";
+                css += ".registerDialog { background-color:#ffffff; border:1px solid #a8b8d0; border-radius:6px; box-shadow:0 4px 14px rgba(0,0,0,0.28); }";
+                css += ".dialogTitle { font-size:18px; font-weight:bold; margin-bottom:10px; }";
+                css += ".topSpacing { margin-top:8px; }";
+                // Top bar styles
+                css += ".topBar { background-color:#2c3e50; padding:8px 16px; border-bottom:2px solid #34495e; }";
+                css += ".appTitle { color:#ecf0f1; font-size:16px; font-weight:bold; }";
+                css += ".userLabel { color:#bdc3c7; font-size:14px; margin-right:12px; }";
+                css += ".logoutBtn { background-color:#e74c3c; color:#ffffff; border:none; padding:6px 12px; border-radius:4px; }";
             var sheet = new StyleSheet();
             sheet.parse(css);
             if (Toolkit.styleSheet == null) {
@@ -37,10 +53,50 @@ class Main {
             app.addComponent(mainView);
             Notifications.init(mainView);
             // ModalManager removed; dialogs use Screen overlay by default
+            
+            // Initialize authentication
+            var authManager = new AuthManager(mainView);
+            authManager.checkAuthentication();
+            
             app.start();
         });
     }
+    
+    #if js
+    /**
+     * Install XMLHttpRequest interceptor to automatically add Authorization header
+     * to all API requests (except auth endpoints)
+     */
+    static function installAuthInterceptor():Void {
+        js.Syntax.code("
+            (function() {
+                var originalOpen = XMLHttpRequest.prototype.open;
+                var originalSend = XMLHttpRequest.prototype.send;
+                
+                XMLHttpRequest.prototype.open = function(method, url) {
+                    this._url = url;
+                    this._method = method;
+                    return originalOpen.apply(this, arguments);
+                };
+                
+                XMLHttpRequest.prototype.send = function() {
+                    // Add auth header to API requests (except /api/auth/ endpoints)
+                    if (this._url && this._url.indexOf('/api/') !== -1) {
+                        // Skip auth endpoints (login, register, etc)
+                        if (this._url.indexOf('/api/auth/') === -1) {
+                            var token = window.localStorage.getItem('authToken');
+                            if (token) {
+                                this.setRequestHeader('Authorization', 'Bearer ' + token);
+                            }
+                        }
+                    }
+                    return originalSend.apply(this, arguments);
+                };
+            })();
+        ");
+        trace('[Auth] XHR interceptor installed - Authorization header will be added to API requests');
+    }
+    #end
 }
-
 
 

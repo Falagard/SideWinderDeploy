@@ -1,0 +1,37 @@
+<!-- Login dialog XML layout -->
+<dialog id="loginDialog" width="400" styleName="loginDialog" closable="true" buttons="none">
+  <vbox id="contentBox" percentWidth="100">
+    <label text="Sign In" styleName="dialogTitle" />
+    
+    <hbox id="emailRow" percentWidth="100">
+      <label id="emailLabel" text="Email/Username:" width="120" />
+      <textfield id="emailField" percentWidth="100" placeholder="Enter email or username" />
+    </hbox>
+    
+    <hbox id="passwordRow" percentWidth="100" styleName="topSpacing">
+      <label id="passwordLabel" text="Password:" width="120" />
+      <textfield id="passwordField" percentWidth="100" placeholder="Enter password" password="true" />
+    </hbox>
+    
+    <label id="errorLabel" visible="false" styleName="errorLabel" />
+    
+    <hbox id="loggingInRow" percentWidth="100" visible="false" styleName="topSpacing">
+      <label id="loggingInLbl" text="Signing in..." width="120" />
+      <progress id="loggingInSpinner" indeterminate="true" percentWidth="100" />
+    </hbox>
+    
+    <hbox id="actions" percentWidth="100" styleName="topSpacing">
+      <button id="loginBtn" text="Sign In" />
+      <button id="registerBtn" text="Create Account" />
+    </hbox>
+    
+    <!-- Optional: Add OAuth buttons section -->
+    <vbox id="oauthSection" percentWidth="100" styleName="topSpacing" visible="false">
+      <label text="Or sign in with:" />
+      <hbox id="oauthButtons" percentWidth="100">
+        <button id="googleBtn" text="Google" />
+        <button id="githubBtn" text="GitHub" />
+      </hbox>
+    </vbox>
+  </vbox>
+</dialog>

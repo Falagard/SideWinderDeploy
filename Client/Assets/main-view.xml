@@ -1,4 +1,11 @@
 <vbox percentWidth="100" percentHeight="100">
+    <!-- Top bar with user info and logout -->
+    <hbox id="topBar" percentWidth="100" styleName="topBar">
+        <label text="SideWinder Deploy" styleName="appTitle" />
+        <spacer percentWidth="100" />
+        <label id="userLabel" text="" styleName="userLabel" />
+        <button id="logoutBtn" text="Sign Out" styleName="logoutBtn" />
+    </hbox>
     <hbox id="rootContent" percentWidth="100" percentHeight="100">
         <!-- Primary navigation -->
         <vbox id="primaryNav" width="140" styleName="primary-nav">

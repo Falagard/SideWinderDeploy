@@ -7,6 +7,7 @@ import sidewinderdeploy.shared.IReleaseService;
 import sidewinderdeploy.shared.IEnvironmentService;
 import sidewinderdeploy.shared.IDeploymentService;
 import sidewinderdeploy.shared.ITenantService;
+import sidewinderdeploy.shared.IAuthService;
 
 /**
  * Central place to create & hold generated AutoClient service proxies.
@@ -30,6 +31,7 @@ class ServiceRegistry {
     public var environment(default, null):IEnvironmentService;
     public var deployment(default, null):IDeploymentService;
     public var tenant(default, null):ITenantService;
+    public var auth(default, null):IAuthService;
 
     public var baseUrl(default, null):String;
 
@@ -42,5 +44,6 @@ class ServiceRegistry {
         environment = AutoClient.create(IEnvironmentService, baseUrl);
         deployment = AutoClient.create(IDeploymentService, baseUrl);
         tenant = AutoClient.create(ITenantService, baseUrl);
+        auth = AutoClient.create(IAuthService, baseUrl);
     }
 }
