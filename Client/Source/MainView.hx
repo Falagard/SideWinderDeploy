@@ -51,11 +51,19 @@ class MainView extends VBox {
 		var initialCat = appState.selectedPrimaryCategory.value;
 		if (initialCat == null || initialCat == "") initialCat = "Projects";
 		updateContentTabsVisibility(initialCat);
-		populateItemsFor(initialCat);
+		// Don't populate data until user is logged in
+		// populateItemsFor will be called after successful authentication
 		
 		// Watch authentication state and update user display
 		appState.currentUser.watch(function(user) {
 			updateUserDisplay();
+			// Load data when user logs in
+			if (user != null) {
+				loadInitialData();
+			} else {
+				// Clear data when user logs out
+				clearAllData();
+			}
 		});
 		updateUserDisplay();
 	}
@@ -70,6 +78,24 @@ class MainView extends VBox {
 				userLabel.text = "";
 			}
 		}
+	}
+
+	private function loadInitialData():Void {
+		var initialCat = appState.selectedPrimaryCategory.value;
+		if (initialCat == null || initialCat == "") initialCat = "Projects";
+		populateItemsFor(initialCat);
+	}
+
+	private function clearAllData():Void {
+		if (itemList != null) {
+			itemList.removeAllComponents();
+		}
+		clearItemStatusComponents();
+		// Reset selection states
+		appState.selectedProjectId.value = -1;
+		appState.selectedEnvironmentId.value = -1;
+		appState.selectedMachineId.value = -1;
+		appState.selectedTenantId.value = -1;
 	}
 
 	private function wireEvents():Void {
