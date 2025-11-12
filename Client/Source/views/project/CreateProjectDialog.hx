@@ -55,8 +55,8 @@ class CreateProjectDialog extends Dialog {
     function doCreate():Void {
         if (createBtn.disabled) return;
         errorLabel.visible = false;
-        var name = nameField.text.trim();
-        var desc = descField.text.trim();
+        var name = (nameField.text != null ? nameField.text : "").trim();
+        var desc = (descField.text != null ? descField.text : "").trim();
         var errs = validate(name);
         if (errs.length > 0) {
             errorLabel.text = errs.join("; ");

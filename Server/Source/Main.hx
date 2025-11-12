@@ -100,10 +100,17 @@ class Main extends Application {
 
 			// Require authentication for all other /api/ routes
 			if (req.path.indexOf("/api/") == 0) {
-				// Get session token from cookie
+				// Get session token from cookie or Authorization header
 				var sessionToken:String = null;
 
-				if (req.cookies != null && req.cookies.exists("session_token")) {
+				// Check for Bearer token in Authorization header first
+				var authHeader = req.headers.get("authorization");
+				if (authHeader != null && authHeader.indexOf("Bearer ") == 0) {
+					sessionToken = authHeader.substring(7); // Remove "Bearer " prefix
+				}
+
+				// Fall back to cookie if no Authorization header
+				if (sessionToken == null && req.cookies != null && req.cookies.exists("session_token")) {
 					sessionToken = req.cookies.get("session_token");
 				}
 

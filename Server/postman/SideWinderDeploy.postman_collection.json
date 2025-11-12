@@ -1,24 +1,13 @@
 {
   "info": {
     "name": "SideWinder Deploy API",
-    "description": "Postman collection for the SideWinder Deploy Server (Octopus-style prototype). Uses annotation-based service routes. Update endpoints currently use POST.",
+    "description": "Postman collection for the SideWinder Deploy Server (Octopus-style prototype). Uses annotation-based service routes and cookie-based authentication.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": { "major": 1, "minor": 0, "patch": 0 }
+    "version": { "major": 1, "minor": 1, "patch": 0 }
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://127.0.0.1:8000/api" },
-    { "key": "authToken", "value": "" }
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000/api" }
   ],
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{authToken}}",
-        "type": "string"
-      }
-    ]
-  },
   "item": [
     {
       "name": "Authentication",
@@ -50,8 +39,8 @@
               "listen": "test",
               "script": {"exec": [
                 "let json; try { json = pm.response.json(); } catch(e) {}",
-                "if(json && json.token){ pm.environment.set('authToken', json.token); pm.collectionVariables.set('authToken', json.token); }",
-                "pm.test('Login successful', function() { pm.expect(json.success).to.eql(true); pm.expect(json.token).to.not.be.undefined; });"
+                "pm.test('Login successful', function() { pm.expect(json.success).to.eql(true); pm.expect(json.user).to.not.be.undefined; });",
+                "pm.test('Session cookie set', function() { pm.expect(pm.cookies.has('session_token')).to.be.true; });"
               ], "type": "text/javascript"}
             }
           ],
@@ -67,7 +56,7 @@
           "name": "Get Current User",
           "request": {
             "method": "GET",
-            "header": [{"key":"Authorization","value":"Bearer {{authToken}}"}],
+            "header": [],
             "url": "{{baseUrl}}/auth/me"
           }
         },
@@ -76,18 +65,71 @@
           "request": {
             "method": "POST",
             "header": [
-              {"key":"Content-Type","value":"application/json"},
-              {"key":"Authorization","value":"Bearer {{authToken}}"}
+              {"key":"Content-Type","value":"application/json"}
             ],
             "body": {"mode":"raw","raw": "{\n  \"oldPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\"\n}"},
             "url": "{{baseUrl}}/auth/change-password"
           }
         },
         {
-          "name": "Logout",
+          "name": "Request Password Reset",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw": "{\n  \"email\": \"admin@example.com\"\n}"},
+            "url": "{{baseUrl}}/auth/reset-password"
+          }
+        },
+        {
+          "name": "Verify Email",
           "request": {
             "method": "POST",
-            "header": [{"key":"Authorization","value":"Bearer {{authToken}}"}],
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw": "{\n  \"code\": \"verification-code-here\"\n}"},
+            "url": "{{baseUrl}}/auth/verify-email"
+          }
+        },
+        {
+          "name": "Refresh Session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/auth/refresh"
+          }
+        },
+        {
+          "name": "OAuth Login (Google)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw": "{\n  \"code\": \"oauth-code-here\",\n  \"redirectUri\": \"http://localhost:8000/oauth/callback\"\n}"},
+            "url": "{{baseUrl}}/auth/oauth/google"
+          }
+        },
+        {
+          "name": "Link OAuth Provider (GitHub)",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw": "{\n  \"code\": \"oauth-code-here\",\n  \"redirectUri\": \"http://localhost:8000/oauth/callback\"\n}"},
+            "url": "{{baseUrl}}/auth/link-oauth/github"
+          }
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {"exec": [
+                "pm.test('Logout successful', function() { let json = pm.response.json(); pm.expect(json.success).to.eql(true); });"
+              ], "type": "text/javascript"}
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
             "url": "{{baseUrl}}/auth/logout"
           }
         }
@@ -123,9 +165,9 @@
           "request": { "method": "GET", "url": "{{baseUrl}}/projects/{{projectId}}" }
         },
         {
-          "name": "Update Project (POST)",
+          "name": "Update Project (PUT)",
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [{"key":"Content-Type","value":"application/json"}],
             "body": {"mode":"raw","raw": "{\n  \"name\": \"WebApp-Renamed\"\n}"},
             "url": "{{baseUrl}}/projects/{{projectId}}"
@@ -203,8 +245,9 @@
         {"name":"List Variables","request":{"method":"GET","url":"{{baseUrl}}/projects/{{projectId}}/variables"}},
   {"name":"Create Variable","event":[{"listen":"test","script":{"exec":["let j; try{j=pm.response.json();}catch(e){}","if(j&&j.id){pm.environment.set('variableId',j.id);} ","if(j){ pm.test('variable id numeric', function(){ pm.expect(typeof j.id).to.eql('number'); pm.expect(typeof j.projectId).to.eql('number'); }); }"],"type":"text/javascript"}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"name\": \"ConnectionString\",\n  \"defaultValue\": \"Server=dev;DB=app\"\n}"},"url":"{{baseUrl}}/projects/{{projectId}}/variables"}},
         {"name":"Get Variable","request":{"method":"GET","url":"{{baseUrl}}/variables/{{variableId}}"}},
-        {"name":"Update Variable (POST)","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"defaultValue\": \"Server=staging;DB=app\"\n}"},"url":"{{baseUrl}}/variables/{{variableId}}"}},
-        {"name":"Delete Variable","request":{"method":"DELETE","url":"{{baseUrl}}/variables/{{variableId}}"}}
+        {"name":"Update Variable (PUT)","request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"defaultValue\": \"Server=staging;DB=app\"\n}"},"url":"{{baseUrl}}/variables/{{variableId}}"}},
+        {"name":"Delete Variable","request":{"method":"DELETE","url":"{{baseUrl}}/variables/{{variableId}}"}},
+        {"name":"Delete All Variables For Project","request":{"method":"DELETE","url":"{{baseUrl}}/projects/{{projectId}}/variables"}}
       ]
     },
     {
