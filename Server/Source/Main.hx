@@ -104,7 +104,7 @@ class Main extends Application {
 				var sessionToken:String = null;
 
 				// Check for Bearer token in Authorization header first
-				var authHeader = req.headers.get("authorization");
+				var authHeader = req.headers.get("Authorization");
 				if (authHeader != null && authHeader.indexOf("Bearer ") == 0) {
 					sessionToken = authHeader.substring(7); // Remove "Bearer " prefix
 				}
